@@ -1,0 +1,24 @@
+# Binaries
+rift
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test files
+*.rift
+!example.rift
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/

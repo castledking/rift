@@ -1,125 +1,150 @@
 # Rift Editor
 
-A terminal-native code editor with a diff-first workflow, designed for SSH environments.
+A terminal-based text editor written in Go with a modern, intuitive interface. Built with [Bubble Tea](https://github.com/charmbracelet/bubbletea) and [Lipgloss](https://github.com/charmbracelet/lipgloss).
 
-## Overview
-
-Rift is NOT modal (not like Vim). It behaves more like VS Code:
-- Direct typing (no modes to switch)
-- Mouse support
-- Standard shortcuts (Ctrl+C, Ctrl+V, etc.)
-
-The defining feature: All automated or AI-driven edits are proposed as diffs and must be reviewed and confirmed before applying.
+![Rift Editor](https://img.shields.io/badge/Rift-Editor-blue)
+![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Features
 
-### MVP Features (Implemented)
+- **File Explorer** - Navigate your project with an expandable tree view
+- **Mouse Support** - Scroll with your mouse wheel in both explorer and editor
+- **Keyboard Navigation** - VS Code-like shortcuts
+- **Undo/Redo** - Full undo/redo history
+- **New File / Open Folder** - Quick file creation and folder switching (Ctrl+N, Ctrl+O)
+- **Command Line Support** - Open files and folders directly from the terminal
+- **Clipboard Integration** - OSC52 support for system clipboard over SSH
 
-1. **Layout System**
-   - Left panel: collapsible file explorer
-   - Center: main editor view
-   - Bottom: status bar with shortcuts
-   - Support for resizing and focus switching
-   - Toggle explorer with Ctrl+B
+## Quick Install
 
-2. **File Explorer**
-   - Tree view of current working directory
-   - Expand/collapse directories
-   - Click to open file in editor
-   - Keyboard navigation (up/down, enter to expand/open)
-
-3. **Text Editor (Core)**
-   - Open, edit, save files
-   - Cursor movement (arrows, word jump with Home/End)
-   - Mouse click to place cursor
-   - Basic scrolling (PgUp/PgDown)
-   - Undo/redo stack (Ctrl+Z, Ctrl+Shift+Z)
-
-4. **Keybindings (VS Code-like)**
-   - `Ctrl+C` → copy current line
-   - `Ctrl+V` → paste
-   - `Ctrl+X` → cut current line
-   - `Ctrl+Z` → undo
-   - `Ctrl+Shift+Z` → redo
-   - `Ctrl+S` → save
-   - `Ctrl+B` → toggle explorer
-   - `Ctrl+Q` → quit
-
-5. **Clipboard Layer**
-   - Internal clipboard always works
-   - OSC52 support for system clipboard over SSH
-   - Graceful degradation if OSC52 not supported
-
-6. **Diff / Patch Review System (Core Feature)**
-   - Proposed changes shown as inline diffs
-   - Review mode with key controls:
-     - `y` or `Enter` → accept hunk
-     - `n` or `Backspace` → reject hunk
-     - `a` → accept all remaining
-     - `r` → reject all remaining
-     - `q` or `Esc` → exit review mode
-     - `Tab` → next hunk
-     - `Shift+Tab` → previous hunk
-
-## Architecture
-
-```
-/cmd/rift          → Entry point
-/internal/app      → Main app state & layout management
-/internal/editor   → Text buffer, cursor, selection, clipboard
-/internal/explorer  → File tree navigation
-/internal/diff     → Diff model, hunk system, and review UI
-/internal/clipboard → Clipboard abstraction with OSC52
-/internal/keymap   → Keybindings
-/internal/ui       → (placeholder for reusable components)
-```
-
-Design principles:
-- No global state
-- Clear separation of concerns
-- All UI state flows through Bubble Tea model/update/view
-
-## Building and Running
+### Using the Setup Script (Recommended)
 
 ```bash
-# Build
-go build ./cmd/rift
+# Clone the repository
+git clone https://github.com/castledking/rift.git
+cd rift
 
-# Run
-./rift
+# Build and install
+./setup_rift.sh
 
-# Or run directly
-go run ./cmd/rift
+# Reload your shell configuration
+source ~/.bashrc
+
+# Run Rift
+rift
+```
+
+The setup script will:
+- Build the binary from source (requires Go 1.21+)
+- Install to `~/.local/bin`
+- Add a convenient `rift` shell function to your `.bashrc` that properly handles file/folder arguments
+
+### Manual Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/castledking/rift.git
+cd rift
+
+# Build the binary
+go build -o rift ./cmd/rift
+
+# Move to your preferred location
+mv rift ~/.local/bin/
 ```
 
 ## Usage
 
-1. Start Rift in any directory - it will show the file explorer on the left
-2. Navigate with arrow keys or click with mouse
-3. Press Enter or click to open a file
-4. Edit directly (no modes)
-5. Use Ctrl+S to save, Ctrl+Q to quit
-6. Use Ctrl+B to toggle the file explorer
+### Opening Files and Folders
 
-## Future Enhancements
+```bash
+# Open current directory
+rift
 
-- Find/Replace (Ctrl+F)
-- Quick file open (Ctrl+P)
-- Command palette (Ctrl+Shift+P)
-- LSP integration
-- AI integration with diff review
-- Plugin system
-- Syntax highlighting
-- Line numbers
-- Split panes
-- Configuration file support
+# Open specific folder
+rift /path/to/project
 
-## Dependencies
+# Open specific file
+rift /path/to/file.go
 
-- [Bubble Tea](https://github.com/charmbracelet/bubbletea) - TUI framework
-- [Lipgloss](https://github.com/charmbracelet/lipgloss) - Styling
-- [go-osc52](https://github.com/aymanbagabas/go-osc52) - OSC52 clipboard integration
+# Open files without extensions
+rift /etc/nginx/sites-available/my-site
+```
+
+### Keybindings
+
+| Key | Action |
+|-----|--------|
+| `Ctrl+S` | Save file |
+| `Ctrl+Q` | Quit |
+| `Ctrl+N` | New file |
+| `Ctrl+O` | Open folder |
+| `Ctrl+B` | Toggle file explorer |
+| `Ctrl+F` | Find in file |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Shift+Z` | Redo |
+| `Ctrl+C` | Copy line/selection |
+| `Ctrl+X` | Cut line/selection |
+| `Ctrl+V` | Paste |
+| `Ctrl+A` | Select all |
+| `Ctrl+G` | Toggle line numbers |
+| `F1` | Show help |
+
+### File Explorer Navigation
+
+- **↑/↓** - Navigate up/down
+- **Enter** - Open file or expand/collapse folder
+- **Scroll Wheel** - Scroll through the tree
+
+### Editor Navigation
+
+- **Arrow Keys** - Move cursor
+- **Home/End** - Beginning/end of line
+- **Page Up/Down** - Scroll viewport
+- **Scroll Wheel** - Scroll through file
+
+## Requirements
+
+- Go 1.21 or later (for building from source)
+- Terminal with mouse support (optional but recommended)
+
+## Building from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/castledking/rift.git
+cd rift
+
+# Build
+go build -o rift ./cmd/rift
+
+# Run
+./rift
+```
+
+## Project Structure
+
+```
+rift/
+├── cmd/rift/          # Main entry point
+├── internal/
+│   ├── app/           # Application orchestration
+│   ├── editor/        # Text editor implementation
+│   ├── explorer/      # File tree explorer
+│   ├── keymap/        # Keybinding management
+│   ├── clipboard/     # Clipboard operations
+│   └── diff/          # Diff/review functionality
+├── go.mod
+├── go.sum
+├── setup_rift.sh      # Installation script
+└── README.md
+```
 
 ## License
 
-MIT
+MIT License - see LICENSE file for details.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues and pull requests.
