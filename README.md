@@ -66,10 +66,7 @@ rift
 rift /path/to/project
 
 # Open specific file
-rift /path/to/file.go
-
-# Open files without extensions
-rift /etc/nginx/sites-available/my-site
+rift /path/to/file.txt
 ```
 
 ### Keybindings
