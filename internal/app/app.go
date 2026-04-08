@@ -306,8 +306,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case editor.StatusMsg:
 		m.statusMsg = string(msg)
 		// Refresh explorer when a file is saved (new files appear in explorer)
-		if strings.HasPrefix(string(msg), "Saved: ") {
+		if strings.HasPrefix(string(msg), "Saved: ") || strings.HasPrefix(string(msg), "Saved (admin): ") {
 			cmds = append(cmds, m.explorer.Refresh())
+		}
+		// Auto-retry with admin on permission denied
+		if strings.Contains(string(msg), "permission denied") && m.editor.GetFilePath() != "" {
+			m.statusMsg = "Permission denied - Retrying with admin..."
+			cmds = append(cmds, m.editor.SaveWithAdmin())
 		}
 
 	case explorer.RefreshCompleteMsg:
