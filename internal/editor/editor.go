@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"rift/internal/clipboard"
 	"strings"
 
@@ -654,6 +655,34 @@ func (m *Model) Save() tea.Cmd {
 
 		m.buffer.modified = false
 		return StatusMsg("Saved: " + m.filepath)
+	}
+}
+
+// SaveWithAdmin saves the file using sudo (for editing protected files)
+func (m *Model) SaveWithAdmin() tea.Cmd {
+	return func() tea.Msg {
+		if m.filepath == "" {
+			return StatusMsg("No file to save")
+		}
+
+		content := strings.Join(m.buffer.lines, "\n")
+
+		// Try pkexec first, then fall back to sudo
+		var cmd *exec.Cmd
+		if _, err := exec.LookPath("pkexec"); err == nil {
+			cmd = exec.Command("pkexec", "tee", m.filepath)
+		} else {
+			cmd = exec.Command("sudo", "tee", m.filepath)
+		}
+
+		cmd.Stdin = strings.NewReader(content)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			return StatusMsg("Error saving with admin: " + err.Error() + " - " + string(output))
+		}
+
+		m.buffer.modified = false
+		return StatusMsg("Saved (admin): " + m.filepath)
 	}
 }
 

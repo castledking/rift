@@ -25,6 +25,7 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 // GlobalKeyMap defines all global shortcuts
 type GlobalKeyMap struct {
 	Save              []string
+	SaveAdmin         []string
 	Quit              []string
 	NewFile           []string
 	OpenFolder        []string
@@ -46,6 +47,7 @@ type GlobalKeyMap struct {
 func DefaultGlobalKeyMap() GlobalKeyMap {
 	return GlobalKeyMap{
 		Save:              []string{"ctrl+s"},
+		SaveAdmin:         []string{"ctrl+shift+s"},
 		Quit:              []string{"ctrl+q"},
 		NewFile:           []string{"ctrl+n"},
 		OpenFolder:        []string{"ctrl+o"},

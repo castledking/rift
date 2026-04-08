@@ -65,6 +65,13 @@ func (m *Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, m.editor.Save()
 
+	case keymap.Matches(msg, km.SaveAdmin):
+		// Save with admin privileges (for system files)
+		if m.editor.GetFilePath() == "" {
+			return m, nil
+		}
+		return m, m.editor.SaveWithAdmin()
+
 	case keymap.Matches(msg, km.Undo):
 		m.editor.Undo()
 		return m, nil
@@ -117,7 +124,7 @@ func (m *Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case keymap.Matches(msg, km.ShowHelp):
 		// Show help message overriding current status
-		m.statusMsg = "Rift Editor - Ctrl+B: Toggle Explorer | Ctrl+S: Save | Ctrl+Q: Quit | Ctrl+G: Line Numbers | F1: Help"
+		m.statusMsg = "Rift Editor - Ctrl+B: Explorer | Ctrl+S: Save | Ctrl+Shift+S: Admin Save | Ctrl+Q: Quit | F1: Help"
 		return m, nil
 	}
 
@@ -402,7 +409,7 @@ func (m *Model) renderStatusBar() string {
 
 	content := m.statusMsg
 	if content == "" {
-		content = "Rift Editor - Ctrl+B: Toggle Explorer | Ctrl+S: Save | Ctrl+Q: Quit"
+		content = "Rift Editor - Ctrl+B: Explorer | Ctrl+S: Save | Ctrl+Shift+S: Admin Save | Ctrl+Q: Quit"
 	}
 
 	return style.Render(content)
