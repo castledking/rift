@@ -78,7 +78,7 @@ func New() *Model {
 		viewport:        Viewport{topLine: 0, leftCol: 0},
 		clipboard:       clipboard.New(),
 		showLineNumbers: true,
-		syntaxEnabled:   true,
+		syntaxEnabled:   false, // Disabled due to cursor positioning issues with ANSI codes
 	}
 }
 
