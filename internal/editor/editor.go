@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"rift/internal/clipboard"
 	"strings"
 
+	"github.com/alecthomas/chroma"
+	"github.com/alecthomas/chroma/lexers"
+	"github.com/alecthomas/chroma/styles"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -60,6 +64,8 @@ type Model struct {
 	filepath        string
 	clipboard       *clipboard.Clipboard
 	showLineNumbers bool
+	lexer           chroma.Lexer
+	syntaxEnabled   bool
 }
 
 // New creates a new editor model
@@ -72,6 +78,7 @@ func New() *Model {
 		viewport:        Viewport{topLine: 0, leftCol: 0},
 		clipboard:       clipboard.New(),
 		showLineNumbers: true,
+		syntaxEnabled:   true,
 	}
 }
 
@@ -84,6 +91,65 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) SetSize(width, height int) {
 	m.width = width
 	m.height = height
+}
+
+// detectLexer returns the appropriate lexer for the current file
+func (m *Model) detectLexer() chroma.Lexer {
+	if m.filepath == "" {
+		return nil
+	}
+
+	ext := filepath.Ext(m.filepath)
+	lexer := lexers.Match(m.filepath)
+	if lexer == nil {
+		lexer = lexers.Get(ext)
+	}
+	return lexer
+}
+
+// highlightLine applies syntax highlighting to a line using chroma
+func (m *Model) highlightLine(line string, lineNum int) string {
+	if !m.syntaxEnabled || m.lexer == nil {
+		return line
+	}
+
+	// Tokenize the line
+	iterator, err := m.lexer.Tokenise(nil, line)
+	if err != nil {
+		return line
+	}
+
+	// Use a simple style mapping
+	style := styles.Get("monokai")
+	if style == nil {
+		return line
+	}
+
+	// Build the highlighted line
+	var result strings.Builder
+	for _, token := range iterator.Tokens() {
+		// Get chroma style for this token type
+		chromaStyle := style.Get(token.Type)
+		if !chromaStyle.IsZero() {
+			// Convert chroma color to lipgloss color
+			var fg lipgloss.Color
+			if chromaStyle.Colour != 0 {
+				fg = lipgloss.Color(chromaStyle.Colour.String())
+			}
+
+			// Apply style if we have a foreground color
+			if fg != "" {
+				style := lipgloss.NewStyle().Foreground(fg)
+				result.WriteString(style.Render(token.Value))
+			} else {
+				result.WriteString(token.Value)
+			}
+		} else {
+			result.WriteString(token.Value)
+		}
+	}
+
+	return result.String()
 }
 
 // OpenFile loads a file into the editor
@@ -107,6 +173,7 @@ func (m *Model) OpenFile(path string) tea.Cmd {
 		}
 
 		m.filepath = path
+		m.lexer = m.detectLexer()
 		m.buffer = &Buffer{
 			lines:    lines,
 			modified: false,
@@ -322,6 +389,9 @@ func (m *Model) View() string {
 		if len(lineContent) > contentWidth {
 			lineContent = lineContent[:contentWidth]
 		}
+
+		// Apply syntax highlighting
+		lineContent = m.highlightLine(lineContent, i)
 
 		// Check if this line has selection
 		hasSelection := m.selection.active && i >= selStartLine && i <= selEndLine
