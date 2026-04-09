@@ -91,6 +91,14 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) SetSize(width, height int) {
 	m.width = width
 	m.height = height
+
+	// Reset viewport if it's out of bounds after resize
+	if m.viewport.topLine >= len(m.buffer.lines) {
+		m.viewport.topLine = len(m.buffer.lines) - 1
+		if m.viewport.topLine < 0 {
+			m.viewport.topLine = 0
+		}
+	}
 }
 
 // detectLexer returns the appropriate lexer for the current file
@@ -352,6 +360,17 @@ func (m *Model) View() string {
 
 	contentWidth := m.width - lineNumWidth
 
+	// Ensure viewport is valid
+	if m.viewport.topLine < 0 {
+		m.viewport.topLine = 0
+	}
+	if m.viewport.topLine >= len(m.buffer.lines) {
+		m.viewport.topLine = len(m.buffer.lines) - 1
+		if m.viewport.topLine < 0 {
+			m.viewport.topLine = 0
+		}
+	}
+
 	lineNumStyle := lipgloss.NewStyle().
 		Width(lineNumWidth).
 		Background(lipgloss.Color("#1e1e1e")).
@@ -499,7 +518,13 @@ func (m *Model) View() string {
 		resultLines = append(resultLines, emptyLine)
 	}
 
-	return strings.Join(resultLines, "\n")
+	// Wrap with background color to ensure proper layering
+	editorStyle := lipgloss.NewStyle().
+		Width(m.width).
+		Height(m.height).
+		Background(lipgloss.Color("#1e1e1e"))
+
+	return editorStyle.Render(strings.Join(resultLines, "\n"))
 }
 
 // getSelectionRange returns normalized selection coordinates
